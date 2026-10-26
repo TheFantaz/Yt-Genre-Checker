@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Genre Gate</title>
+    <link rel="stylesheet" href="popup.css" />
+  </head>
+  <body>
+    <main class="popup">
+      <header class="header">
+        <h1>Genre Gate</h1>
+        <label class="master" for="enabled-toggle">
+          <span>Enabled</span>
+          <span class="switch">
+            <input type="checkbox" id="enabled-toggle" disabled />
+            <span class="switch-track" aria-hidden="true"></span>
+          </span>
+        </label>
+      </header>
+
+      <p id="enabled-copy" class="muted">Loading…</p>
+
+      <div class="status">
+        <div class="status-line">
+          <span id="key-dot" class="dot" aria-hidden="true"></span>
+          <span id="key-copy">Checking API key…</span>
+        </div>
+        <div class="status-line">
+          <span>Model</span>
+          <code id="model-copy">—</code>
+        </div>
+        <p id="popup-status" class="popup-status" hidden></p>
+      </div>
+
+      <button type="button" id="open-options" class="settings-button">
+        Settings
+      </button>
+    </main>
+
+    <script src="popup.js"></script>
+  </body>
+</html>

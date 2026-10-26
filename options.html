@@ -1,0 +1,274 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Genre Gate Settings</title>
+    <link rel="stylesheet" href="options.css" />
+  </head>
+  <body>
+    <main class="page">
+      <header class="topbar">
+        <div>
+          <h1>Genre Gate</h1>
+          <p>YouTube genre check settings</p>
+        </div>
+        <label class="master-switch" for="enabled-toggle">
+          <span id="enabled-label">Enabled</span>
+          <span class="switch">
+            <input type="checkbox" id="enabled-toggle" />
+            <span class="switch-track" aria-hidden="true"></span>
+          </span>
+        </label>
+      </header>
+
+      <div
+        id="status"
+        class="status-toast"
+        role="status"
+        aria-live="polite"
+        hidden
+      ></div>
+
+      <section aria-labelledby="api-heading">
+        <div class="section-heading">
+          <h2 id="api-heading">OpenRouter</h2>
+          <span id="key-state" class="badge">Loading</span>
+        </div>
+
+        <p>
+          The API key stays in extension storage and is only used by the
+          background service worker.
+        </p>
+
+        <div id="key-saved" class="saved-key" hidden>
+          <span>Saved key</span>
+          <code id="masked-key" class="masked-key">••••••••</code>
+          <div class="button-row">
+            <button type="button" id="change-key" class="btn btn-secondary">
+              Change
+            </button>
+            <button type="button" id="remove-key" class="btn btn-danger">
+              Remove
+            </button>
+          </div>
+        </div>
+
+        <div id="key-editor" class="field">
+          <label for="api-key-input">API key</label>
+          <div class="key-input-row">
+            <input
+              type="password"
+              id="api-key-input"
+              placeholder="sk-or-v1-…"
+              autocomplete="off"
+              autocapitalize="none"
+              spellcheck="false"
+            />
+            <button type="button" id="save-key" class="btn btn-primary">
+              Save
+            </button>
+            <button
+              type="button"
+              id="cancel-change"
+              class="btn btn-secondary"
+              hidden
+            >
+              Cancel
+            </button>
+          </div>
+          <p id="key-editor-help" class="small">
+            Saving an empty field removes the key.
+          </p>
+        </div>
+
+        <div class="test-row">
+          <button type="button" id="test-key" class="btn btn-secondary">
+            Test key
+          </button>
+          <span id="test-status" class="inline-status" role="status"></span>
+        </div>
+
+        <label class="check-row remember-row" for="remember-key">
+          <input type="checkbox" id="remember-key" checked />
+          <span>
+            <strong>Remember key on this device</strong>
+            <small>
+              Off = memory only, and must be re-entered after a browser restart.
+            </small>
+          </span>
+        </label>
+
+        <p class="small">
+          <a href="https://openrouter.ai/keys" target="_blank" rel="noopener">
+            Get a key
+          </a>
+          ·
+          <a href="https://openrouter.ai/credits" target="_blank" rel="noopener">
+            Credits
+          </a>
+          · Paid models need credits.
+        </p>
+
+        <p id="key-notice" class="notice" role="status" hidden></p>
+      </section>
+
+      <section aria-labelledby="classification-heading">
+        <div class="section-heading">
+          <h2 id="classification-heading">Classification</h2>
+        </div>
+
+        <div class="field">
+          <label for="model-input">Model ID</label>
+          <input
+            type="text"
+            id="model-input"
+            autocomplete="off"
+            autocapitalize="none"
+            spellcheck="false"
+          />
+          <div class="button-row">
+            <button
+              type="button"
+              id="use-free-model"
+              class="btn btn-secondary"
+            >
+              Use free router
+            </button>
+            <span class="small">Sets openrouter/free</span>
+          </div>
+          <p class="small">
+            The model must support JSON output. Free models can be rate-limited.
+          </p>
+        </div>
+
+        <div class="field">
+          <label for="min-length">Minimum length (minutes)</label>
+          <input type="number" id="min-length" min="0" step="1" />
+          <p class="small">
+            0 disables this check. Shorts are ignored by this rule. Live streams
+            are not treated as short.
+          </p>
+        </div>
+
+        <p class="small">
+          If a check fails, the gate stays open with Retry, Open settings when
+          relevant, and Watch anyway. It never resumes the video on its own.
+        </p>
+      </section>
+
+      <section aria-labelledby="genres-heading">
+        <div class="section-heading">
+          <h2 id="genres-heading">Genres</h2>
+        </div>
+        <p>
+          The classifier chooses one genre. Approved genres resume
+          automatically.
+        </p>
+
+        <div id="genre-list" class="genre-list"></div>
+
+        <div class="add-row">
+          <input
+            type="text"
+            id="new-genre"
+            placeholder="Add a genre"
+            maxlength="80"
+          />
+          <button type="button" id="add-genre" class="btn btn-secondary">
+            Add
+          </button>
+        </div>
+        <p class="small">
+          “Other” always exists, cannot be deleted or renamed, and is
+          unapproved by default.
+        </p>
+      </section>
+
+      <section aria-labelledby="channels-heading">
+        <div class="section-heading">
+          <h2 id="channels-heading">Channels</h2>
+        </div>
+        <p class="small">
+          Matching is case-insensitive against channel name, handle, and ID.
+        </p>
+
+        <h3>Whitelist</h3>
+        <p class="small">
+          Allowed immediately without an API call.
+        </p>
+        <div id="whitelist-list" class="channel-list"></div>
+        <div class="add-channel-row">
+          <input
+            type="text"
+            id="new-whitelist-channel"
+            placeholder="Channel or @handle"
+            maxlength="200"
+          />
+          <input
+            type="text"
+            id="new-whitelist-reason"
+            placeholder="Reason / genre (optional)"
+            maxlength="200"
+          />
+          <button
+            type="button"
+            id="add-whitelist-channel"
+            class="btn btn-secondary"
+          >
+            Add
+          </button>
+        </div>
+
+        <h3>Blacklist</h3>
+        <p class="small">
+          Blocked immediately without an API call.
+        </p>
+        <div id="blacklist-list" class="channel-list"></div>
+        <div class="add-channel-row">
+          <input
+            type="text"
+            id="new-blacklist-channel"
+            placeholder="Channel or @handle"
+            maxlength="200"
+          />
+          <input
+            type="text"
+            id="new-blacklist-reason"
+            placeholder="Reason / genre (optional)"
+            maxlength="200"
+          />
+          <button
+            type="button"
+            id="add-blacklist-channel"
+            class="btn btn-secondary"
+          >
+            Add
+          </button>
+        </div>
+      </section>
+
+      <section aria-labelledby="cache-heading">
+        <div class="section-heading">
+          <h2 id="cache-heading">Cache</h2>
+        </div>
+        <p class="small">
+          Cached videos skip the API call. Clearing the cache does not affect
+          the key or settings.
+        </p>
+        <div class="button-row">
+          <button type="button" id="clear-cache" class="btn btn-secondary">
+            Clear cache
+          </button>
+          <span id="cache-status" class="inline-status" role="status"></span>
+        </div>
+      </section>
+
+      <footer>
+        <p>Genre Gate v1.0</p>
+      </footer>
+    </main>
+
+    <script src="options.js"></script>
+  </body>
+</html>
